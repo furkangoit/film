@@ -25,10 +25,10 @@ const MovieCard: React.FC<MovieCardProps> = ({
   const [favAnimating, setFavAnimating] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Generate image URL using Pollinations AI for high-quality posters
+  // Görsel URL'sini Unsplash'tan al - API key gerektirmiyor
   const generateImageUrl = (title: string, year: number): string => {
-    const encodedTitle = encodeURIComponent(`${title} ${year} film poster minimal cinematic high quality`);
-    return `https://image.pollinations.ai/prompt/${encodedTitle}?width=600&height=900&nologo=true`;
+    const query = encodeURIComponent(title);
+    return `https://source.unsplash.com/600x900/?${query},cinema,film&sig=${year}`;
   };
 
   const imageUrl = generateImageUrl(movie.title, movie.year);
@@ -73,8 +73,8 @@ const MovieCard: React.FC<MovieCardProps> = ({
           alt={movie.title}
           onLoad={() => setImageLoaded(true)}
           onError={(e) => {
-            // Fallback to SVG gradient if image fails
-            e.currentTarget.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 900'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:rgb(50,50,50);stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:rgb(20,20,20);stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='900' fill='url(%23grad)'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='Arial' font-size='28' fill='rgb(150,150,150)' text-anchor='middle'%3E${movie.title.substring(0, 20)}%3C/text%3E%3C/svg%3E`;
+            // Fallback SVG gradient if image fails
+            e.currentTarget.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 900'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:rgb(50,50,50);stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:rgb(20,20,20);stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='900' fill='url(%23grad)'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='Arial' font-size='24' fill='rgb(150,150,150)' text-anchor='middle'%3E${movie.title.substring(0, 20)}%3C/text%3E%3C/svg%3E`;
             setImageLoaded(true);
           }}
           className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110 opacity-90 group-hover:opacity-100"

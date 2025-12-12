@@ -8,6 +8,8 @@ export interface Movie {
   director: string;
   duration?: string;
   cast?: string[];
+  userRating?: number;        // ✨ Kullanıcı puanı
+  reviewCount?: number;        // ✨ Kaç kişi puanladı
 }
 
 export interface Review {
@@ -36,4 +38,23 @@ export interface CustomList {
 export interface RecommendationResponse {
   movies: Movie[];
   summary: string;
+}
+
+// ✨ YENİ TYPES
+export interface UserMovieRating {
+  movieId: string;
+  rating: number;
+  date: string;
+}
+
+export interface SortOption {
+  type: 'rating' | 'year' | 'title';
+  label: string;
+  direction: 'asc' | 'desc';
+}
+
+export interface GenreCombination {
+  genres: string[];
+  label: string;
+  description?: string;
 }
