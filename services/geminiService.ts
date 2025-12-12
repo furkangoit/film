@@ -1,6 +1,7 @@
+/// <reference types="vite/client" />
 import { Movie, RecommendationResponse } from '../types';
 
-const API_KEY = (import.meta as any).env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 // Fallback Movies Database - 10 FİLM
@@ -323,6 +324,83 @@ const MOVIES_BY_GENRE: Record<string, Movie[]> = {
     { id: 'dram-7', title: 'Boyhood', year: 2014, rating: 7.9, genre: 'Dram', director: 'Richard Linklater', overview: '12 yılda büyüme.', cast: ['Ellar Coltrane'], userRating: 7.8, reviewCount: 350 },
     { id: 'dram-8', title: 'The Pursuit of Happyness', year: 2006, rating: 8.0, genre: 'Dram', director: 'Gabriele Muccino', overview: 'Baba oğul birlikteliği.', cast: ['Will Smith', 'Jaden Smith'], userRating: 7.9, reviewCount: 410 },
     { id: 'dram-9', title: '12 Angry Men', year: 1957, rating: 9.0, genre: 'Dram', director: 'Sidney Lumet', overview: 'Mahkemede oy değişimi.', cast: ['Henry Fonda'], userRating: 8.9, reviewCount: 290 }
+  ],
+  'Komedi': [
+    { id: 'komedi-1', title: 'Forrest Gump', year: 1994, rating: 8.8, genre: 'Komedi', director: 'Robert Zemeckis', overview: 'Komik ve duygulandıran.', cast: ['Tom Hanks'], userRating: 8.7, reviewCount: 420 },
+    { id: 'komedi-2', title: 'The Hangover', year: 2009, rating: 7.7, genre: 'Komedi', director: 'Todd Phillips', overview: 'Vegas gecesinin ardından.', cast: ['Bradley Cooper', 'Ed Helms'], userRating: 7.6, reviewCount: 380 },
+    { id: 'komedi-3', title: 'Bridesmaids', year: 2011, rating: 7.8, genre: 'Komedi', director: 'Paul Feig', overview: 'Gelin partisinin kaotik hazırlığı.', cast: ['Kristen Wiig', 'Maya Rudolph'], userRating: 7.7, reviewCount: 340 },
+    { id: 'komedi-4', title: 'Superbad', year: 2007, rating: 7.6, genre: 'Komedi', director: 'Greg Mottola', overview: 'Lise öğrencilerinin macerası.', cast: ['Michael Cera', 'Jonah Hill'], userRating: 7.5, reviewCount: 310 },
+    { id: 'komedi-5', title: 'Three Idiots', year: 2009, rating: 8.4, genre: 'Komedi', director: 'Rajkumar Hirani', overview: 'Hindistan eğitim sistemi.', cast: ['Aamir Khan'], userRating: 8.3, reviewCount: 450 },
+    { id: 'komedi-6', title: 'Tropic Thunder', year: 2008, rating: 7.0, genre: 'Komedi', director: 'Ben Stiller', overview: 'Film çekimi kendi başına film haline gelir.', cast: ['Ben Stiller', 'Robert Downey Jr.'], userRating: 6.9, reviewCount: 320 },
+    { id: 'komedi-7', title: 'Groundhog Day', year: 1993, rating: 8.0, genre: 'Komedi', director: 'Harold Ramis', overview: 'Aynı günü yaşamak.', cast: ['Bill Murray'], userRating: 7.9, reviewCount: 290 },
+    { id: 'komedi-8', title: 'Juno', year: 2007, rating: 7.7, genre: 'Komedi', director: 'Jason Reitman', overview: 'Hamile bir kız.', cast: ['Ellen Page'], userRating: 7.6, reviewCount: 350 },
+    { id: 'komedi-9', title: 'Napoleon Dynamite', year: 2004, rating: 7.0, genre: 'Komedi', director: 'Jared Hess', overview: 'Tuhaf bir lise öğrencisi.', cast: ['Jon Heder'], userRating: 6.9, reviewCount: 280 }
+  ],
+  'Korku': [
+    { id: 'korku-1', title: 'Hereditary', year: 2018, rating: 7.3, genre: 'Korku', director: 'Ari Aster', overview: 'Ailede uğursuz sırlar.', cast: ['Toni Collette'], userRating: 7.2, reviewCount: 410 },
+    { id: 'korku-2', title: 'Insidious', year: 2010, rating: 7.0, genre: 'Korku', director: 'James Wan', overview: 'Paralel dünyada kaybolan çocuk.', cast: ['Patrick Wilson', 'Rose Byrne'], userRating: 6.9, reviewCount: 370 },
+    { id: 'korku-3', title: 'The Witch', year: 2015, rating: 6.9, genre: 'Korku', director: 'Robert Eggers', overview: '17. yüzyılda bir aile.', cast: ['Anya Taylor-Joy'], userRating: 6.8, reviewCount: 320 },
+    { id: 'korku-4', title: 'A Quiet Place', year: 2018, rating: 7.5, genre: 'Korku', director: 'John Krasinski', overview: 'Sessiz olmak zorunda.', cast: ['Emily Blunt', 'John Krasinski'], userRating: 7.4, reviewCount: 450 },
+    { id: 'korku-5', title: 'Sinister', year: 2012, rating: 6.8, genre: 'Korku', director: 'Scott Derrickson', overview: 'Korkunç filmler bulma.', cast: ['Ethan Hawke'], userRating: 6.7, reviewCount: 380 },
+    { id: 'korku-6', title: 'The Ring', year: 2002, rating: 7.1, genre: 'Korku', director: 'Gore Verbinski', overview: 'Ölümcül video kaydı.', cast: ['Naomi Watts'], userRating: 7.0, reviewCount: 340 },
+    { id: 'korku-7', title: 'It Follows', year: 2014, rating: 6.8, genre: 'Korku', director: 'David Robert Mitchell', overview: 'Takip edilen birisi.', cast: ['Maika Monroe'], userRating: 6.7, reviewCount: 300 },
+    { id: 'korku-8', title: 'The Conjuring', year: 2013, rating: 7.5, genre: 'Korku', director: 'James Wan', overview: 'Poltergeist soruşturması.', cast: ['Vera Farmiga', 'Patrick Wilson'], userRating: 7.4, reviewCount: 420 },
+    { id: 'korku-9', title: 'Scary Stories to Tell in the Dark', year: 2019, rating: 6.3, genre: 'Korku', director: 'André Øvredal', overview: 'Cadı kitabından çıkan canavarlar.', cast: ['Zoe Colletti'], userRating: 6.2, reviewCount: 290 }
+  ],
+  'Romantik': [
+    { id: 'romantik-1', title: 'About Time', year: 2013, rating: 7.8, genre: 'Romantik', director: 'Richard Curtis', overview: 'Zaman ile aşk.', cast: ['Domhnall Gleeson', 'Rachel McAdams'], userRating: 7.7, reviewCount: 380 },
+    { id: 'romantik-2', title: 'The Notebook', year: 2004, rating: 7.8, genre: 'Romantik', director: 'Nick Cassavetes', overview: 'Yaşlı çift aşkı hatırlar.', cast: ['Rachel McAdams', 'Ryan Gosling'], userRating: 7.7, reviewCount: 420 },
+    { id: 'romantik-3', title: 'Midnight in Paris', year: 2011, rating: 7.7, genre: 'Romantik', director: 'Woody Allen', overview: 'Paris\'in sihirli geceleri.', cast: ['Owen Wilson', 'Marion Cotillard'], userRating: 7.6, reviewCount: 390 },
+    { id: 'romantik-4', title: 'Crazy Rich Asians', year: 2018, rating: 7.0, genre: 'Romantik', director: 'Jon M. Chu', overview: 'Zengin Asyalı aile.', cast: ['Constance Wu', 'Henry Golding'], userRating: 6.9, reviewCount: 350 },
+    { id: 'romantik-5', title: 'La La Land', year: 2016, rating: 8.0, genre: 'Romantik', director: 'Damien Chazelle', overview: 'Los Angeles\'te aşk ve rüyalar.', cast: ['Ryan Gosling', 'Emma Stone'], userRating: 7.9, reviewCount: 480 },
+    { id: 'romantik-6', title: 'Pride and Prejudice', year: 2005, rating: 7.8, genre: 'Romantik', director: 'Joe Wright', overview: 'Jane Austen klasiği.', cast: ['Keira Knightley', 'Matthew Macfadyen'], userRating: 7.7, reviewCount: 310 },
+    { id: 'romantik-7', title: 'Titanic', year: 1997, rating: 7.8, genre: 'Romantik', director: 'James Cameron', overview: 'Gemideki aşk.', cast: ['Leonardo DiCaprio', 'Kate Winslet'], userRating: 7.7, reviewCount: 510 },
+    { id: 'romantik-8', title: 'The Time Traveler\'s Wife', year: 2009, rating: 7.0, genre: 'Romantik', director: 'Robert Schwentke', overview: 'Zaman sıçrayışları ve aşk.', cast: ['Eric Bana', 'Rachel McAdams'], userRating: 6.9, reviewCount: 320 },
+    { id: 'romantik-9', title: 'When Harry Met Sally', year: 1989, rating: 7.7, genre: 'Romantik', director: 'Rob Reiner', overview: 'Arkadaşlık ve aşk.', cast: ['Billy Crystal', 'Meg Ryan'], userRating: 7.6, reviewCount: 280 }
+  ],
+  'Gerilim': [
+    { id: 'gerilim-1', title: 'Nightcrawler', year: 2014, rating: 7.8, genre: 'Gerilim', director: 'Dan Gilroy', overview: 'Haberciliğin karanlık yüzü.', cast: ['Jake Gyllenhaal'], userRating: 7.7, reviewCount: 400 },
+    { id: 'gerilim-2', title: 'Mystic River', year: 2003, rating: 8.2, genre: 'Gerilim', director: 'Clint Eastwood', overview: 'Üç arkadaş, bir cinayet.', cast: ['Sean Penn', 'Tim Robbins'], userRating: 8.1, reviewCount: 360 },
+    { id: 'gerilim-3', title: 'Gone Girl', year: 2014, rating: 8.1, genre: 'Gerilim', director: 'David Fincher', overview: 'Kadının kaybolması.', cast: ['Ben Affleck', 'Rosamund Pike'], userRating: 8.0, reviewCount: 450 },
+    { id: 'gerilim-4', title: 'Prisoners', year: 2013, rating: 8.1, genre: 'Gerilim', director: 'Denis Villeneuve', overview: 'Kız kaçırılması ve intikam.', cast: ['Hugh Jackman', 'Jake Gyllenhaal'], userRating: 8.0, reviewCount: 420 },
+    { id: 'gerilim-5', title: 'Se7en', year: 1995, rating: 8.6, genre: 'Gerilim', director: 'David Fincher', overview: 'Seri katil avı.', cast: ['Brad Pitt', 'Morgan Freeman'], userRating: 8.5, reviewCount: 480 },
+    { id: 'gerilim-6', title: 'The Girl on the Train', year: 2016, rating: 6.5, genre: 'Gerilim', director: 'Tate Taylor', overview: 'Bileşik kimlikle tanıklık.', cast: ['Emily Blunt'], userRating: 6.4, reviewCount: 320 },
+    { id: 'gerilim-7', title: 'Shutter Island', year: 2010, rating: 8.2, genre: 'Gerilim', director: 'Martin Scorsese', overview: 'Adada gizemli olaylar.', cast: ['Leonardo DiCaprio', 'Mark Ruffalo'], userRating: 8.1, reviewCount: 410 },
+    { id: 'gerilim-8', title: 'Wind River', year: 2017, rating: 7.5, genre: 'Gerilim', director: 'Taylor Sheridan', overview: 'Rezervatta kayıp kadın.', cast: ['Jeremy Renner', 'Gil Birmingham'], userRating: 7.4, reviewCount: 330 },
+    { id: 'gerilim-9', title: 'Zodiac', year: 2007, rating: 7.8, genre: 'Gerilim', director: 'David Fincher', overview: 'Zodiac katiline av.', cast: ['Jake Gyllenhaal', 'Mark Ruffalo'], userRating: 7.7, reviewCount: 370 }
+  ],
+  'Animasyon': [
+    { id: 'animasyon-1', title: 'Inside Out', year: 2015, rating: 8.2, genre: 'Animasyon', director: 'Pete Docter', overview: 'Kız\'ın duyguları.', cast: ['Amy Poehler', 'Phyllis Smith'], userRating: 8.1, reviewCount: 450 },
+    { id: 'animasyon-2', title: 'Zootopia', year: 2016, rating: 8.0, genre: 'Animasyon', director: 'Byron Howard', overview: 'Hayvan şehirinde polis.', cast: ['Ginnifer Goodwin'], userRating: 7.9, reviewCount: 420 },
+    { id: 'animasyon-3', title: 'Kimetsu no Yaiba', year: 2019, rating: 8.8, genre: 'Animasyon', director: 'Haruo Sotozaki', overview: 'Şeytanlarla savaş.', cast: [], userRating: 8.7, reviewCount: 520 },
+    { id: 'animasyon-4', title: 'A Silent Voice', year: 2016, rating: 8.1, genre: 'Animasyon', director: 'Naoko Yamada', overview: 'Sağır kız ve çocuk.', cast: [], userRating: 8.0, reviewCount: 380 },
+    { id: 'animasyon-5', title: 'Coco', year: 2017, rating: 8.4, genre: 'Animasyon', director: 'Lee Unkrich', overview: 'Ölülerin ülkesi.', cast: ['Anthony Gonzalez'], userRating: 8.3, reviewCount: 490 },
+    { id: 'animasyon-6', title: 'Spirited Away', year: 2001, rating: 8.6, genre: 'Animasyon', director: 'Hayao Miyazaki', overview: 'Majik dünyaya giriş.', cast: [], userRating: 8.5, reviewCount: 440 },
+    { id: 'animasyon-7', title: 'Your Name', year: 2016, rating: 8.4, genre: 'Animasyon', director: 'Makoto Shinkai', overview: 'Bedenleri değişen çocuklar.', cast: [], userRating: 8.3, reviewCount: 500 },
+    { id: 'animasyon-8', title: 'Howl\'s Moving Castle', year: 2004, rating: 8.4, genre: 'Animasyon', director: 'Hayao Miyazaki', overview: 'Sihirli kale.', cast: [], userRating: 8.3, reviewCount: 360 },
+    { id: 'animasyon-9', title: 'Toy Story', year: 1995, rating: 8.3, genre: 'Animasyon', director: 'John Lasseter', overview: 'Oyuncakların hayatı.', cast: ['Tom Hanks', 'Tim Allen'], userRating: 8.2, reviewCount: 480 }
+  ],
+  'Belgesel': [
+    { id: 'belgesel-1', title: 'Free Solo', year: 2018, rating: 8.3, genre: 'Belgesel', director: 'Jimmy Chin', overview: 'Duvarcılık adam.', cast: [], userRating: 8.2, reviewCount: 390 },
+    { id: 'belgesel-2', title: 'The Last Dance', year: 2020, rating: 8.9, genre: 'Belgesel', director: 'Jason Hehir', overview: 'Michael Jordan\'ın son sezon.', cast: [], userRating: 8.8, reviewCount: 510 },
+    { id: 'belgesel-3', title: 'Amy', year: 2015, rating: 8.0, genre: 'Belgesel', director: 'Asif Kapadia', overview: 'Amy Winehouse hayatı.', cast: [], userRating: 7.9, reviewCount: 320 },
+    { id: 'belgesel-4', title: 'Our Planet', year: 2019, rating: 9.1, genre: 'Belgesel', director: 'Alastair Fothergill', overview: 'Gezegenimizin güzellikleri.', cast: [], userRating: 9.0, reviewCount: 450 },
+    { id: 'belgesel-5', title: 'Blackfish', year: 2013, rating: 8.4, genre: 'Belgesel', director: 'Gabriela Cowperthwaite', overview: 'Balina ve hapishane.', cast: [], userRating: 8.3, reviewCount: 380 },
+    { id: 'belgesel-6', title: 'The Social Dilemma', year: 2020, rating: 7.6, genre: 'Belgesel', director: 'Jeff Orlowski', overview: 'Sosyal medyanın karanlık yüzü.', cast: [], userRating: 7.5, reviewCount: 420 },
+    { id: 'belgesel-7', title: '13th', year: 2016, rating: 8.2, genre: 'Belgesel', director: 'Ava DuVernay', overview: 'Ceza sistemi ve ırk.', cast: [], userRating: 8.1, reviewCount: 350 },
+    { id: 'belgesel-8', title: 'Jiro Dreams of Sushi', year: 2011, rating: 8.3, genre: 'Belgesel', director: 'David Gelb', overview: 'Sushi ustası\'nın hikayesi.', cast: [], userRating: 8.2, reviewCount: 310 },
+    { id: 'belgesel-9', title: 'Planet Earth II', year: 2016, rating: 9.3, genre: 'Belgesel', director: 'David Attenborough', overview: 'Dünya\'nın doğası.', cast: [], userRating: 9.2, reviewCount: 480 }
+  ],
+  'Fantastik': [
+    { id: 'fantastik-1', title: 'Harry Potter', year: 2001, rating: 7.6, genre: 'Fantastik', director: 'Chris Columbus', overview: 'Sihirli okul.', cast: ['Daniel Radcliffe', 'Emma Watson'], userRating: 7.5, reviewCount: 450 },
+    { id: 'fantastik-2', title: 'Avatar', year: 2009, rating: 7.8, genre: 'Fantastik', director: 'James Cameron', overview: 'Mavi gezegen.', cast: ['Sam Worthington', 'Zoe Saldana'], userRating: 7.7, reviewCount: 520 },
+    { id: 'fantastik-3', title: 'Pan\'s Labyrinth', year: 2006, rating: 8.2, genre: 'Fantastik', director: 'Guillermo del Toro', overview: 'Labirent ve yaratıklar.', cast: ['Ivana Baquero'], userRating: 8.1, reviewCount: 370 },
+    { id: 'fantastik-4', title: 'Stardust', year: 2007, rating: 7.5, genre: 'Fantastik', director: 'Matthew Vaughn', overview: 'Paralel dünya\'da macera.', cast: ['Charlie Cox', 'Claire Danes'], userRating: 7.4, reviewCount: 340 },
+    { id: 'fantastik-5', title: 'The Shape of Water', year: 2017, rating: 7.1, genre: 'Fantastik', director: 'Guillermo del Toro', overview: 'Sualtı yaratığı aşkı.', cast: ['Sally Hawkins', 'Michael Shannon'], userRating: 7.0, reviewCount: 380 },
+    { id: 'fantastik-6', title: 'Doctor Strange', year: 2016, rating: 7.5, genre: 'Fantastik', director: 'Scott Derrickson', overview: 'Sihirli doktor.', cast: ['Benedict Cumberbatch'], userRating: 7.4, reviewCount: 410 },
+    { id: 'fantastik-7', title: 'Aquaman', year: 2018, rating: 6.8, genre: 'Fantastik', director: 'James Wan', overview: 'Deniz ülkesinin kralı.', cast: ['Jason Momoa', 'Amber Heard'], userRating: 6.7, reviewCount: 390 },
+    { id: 'fantastik-8', title: 'The Fantastic Beasts', year: 2016, rating: 7.2, genre: 'Fantastik', director: 'David Yates', overview: 'Sihirli yaratıklar.', cast: ['Eddie Redmayne'], userRating: 7.1, reviewCount: 350 },
+    { id: 'fantastik-9', title: 'Constantine', year: 2005, rating: 6.9, genre: 'Fantastik', director: 'Francis Lawrence', overview: 'Şeytan mücadelesi.', cast: ['Keanu Reeves'], userRating: 6.8, reviewCount: 300 }
   ]
 };
 
