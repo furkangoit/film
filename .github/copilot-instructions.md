@@ -57,7 +57,7 @@ export interface Movie {
 - **Fallback strategy**: SVG gradient with movie title fallback when images fail to load
 - **Error handling**: `onError` handler in img tag generates SVG placeholder with movie title
 - **Image lazy loading**: `loading="lazy"` for performance optimization
-- Implementation in [../components/MovieCard.tsx](../components/MovieCard.tsx#L28-L45)
+- Implementation in [MovieCard.tsx](../components/MovieCard.tsx)
 
 ### 3. User Data Management
 
@@ -74,7 +74,7 @@ export interface Movie {
 
 ### 5. Environment & Build
 
-- **API key setup**: `GEMINI_API_KEY` must be set in `.env.local`; Vite config exposes it via `define` (see [../vite.config.ts](../vite.config.ts#L10-L12))
+- **API key setup**: `GEMINI_API_KEY` must be set in `.env.local`; Vite config exposes it via `define` (see vite.config.ts)
 - **Development server**: Runs on port 3000 with `npm run dev`
 - **Build output**: `npm run build` → Vite optimized production build
 - **No Node.js APIs**: Code runs entirely in browser; `process.env` access only through Vite's define
