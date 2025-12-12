@@ -1,7 +1,9 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Movie } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Initialize Gemini AI with API key from environment
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // Fallback data for offline/error scenarios
 const FALLBACK_MOVIES: Movie[] = [
@@ -57,21 +59,25 @@ const movieSchema: Schema = {
         properties: {
           id: { type: Type.STRING, description: "Unique ID based on movie title hash or random" },
           title: { type: Type.STRING },
-          overview: { type: Type.STRING, description: "Short summary in Turkish" },
+          overview: { type: Type.STRING, description: "Short summary in Turkish, 2-3 sentences" },
           year: { type: Type.INTEGER },
-          rating: { type: Type.NUMBER, description: "IMDb score usually out of 10" },
-          genre: { type: Type.STRING },
+          rating: { type: Type.NUMBER, description: "IMDb score (1-10)" },
+          genre: { type: Type.STRING, description: "Film genre in Turkish" },
           director: { type: Type.STRING },
-          duration: { type: Type.STRING, description: "Example: 2s 15dk" },
+          duration: { type: Type.STRING, description: "Duration format: 2s 15dk" },
           cast: {
             type: Type.ARRAY,
-            items: { type: Type.STRING }
+            items: { type: Type.STRING },
+            description: "List of main actors"
           }
         },
         required: ["title", "overview", "year", "rating", "genre", "director", "cast"]
       }
     },
-    summary: { type: Type.STRING, description: "A friendly, short message in Turkish introducing the list." }
+    summary: { 
+      type: Type.STRING, 
+      description: "A friendly, engaging message in Turkish introducing the list" 
+    }
   },
   required: ["movies", "summary"]
 };
@@ -79,11 +85,11 @@ const movieSchema: Schema = {
 const actorSchema: Schema = {
   type: Type.OBJECT,
   properties: {
-    bio: { type: Type.STRING, description: "Very short biography (max 20 words) in Turkish" },
+    bio: { type: Type.STRING, description: "Very short biography in Turkish (max 20 words)" },
     famousMovies: { 
       type: Type.ARRAY, 
       items: { type: Type.STRING },
-      description: "Top 3 most famous movies of the actor" 
+      description: "Top 3-4 most famous movies of the actor"
     }
   },
   required: ["bio", "famousMovies"]
@@ -91,35 +97,66 @@ const actorSchema: Schema = {
 
 export const fetchMovies = async (prompt: string): Promise<{ movies: Movie[], summary: string }> => {
   try {
-    const modelId = "gemini-2.5-flash"; // Fast and good for lists
+    // Check if API key is available
+    if (!ai || !apiKey) {
+      console.warn("Gemini API key not configured. Using fallback data.");
+      return { 
+        movies: FALLBACK_MOVIES, 
+        summary: "AI servisi şu anda kullanılabilir değil. Çevrimdışı listeyi görüntülüyorsunuz." 
+      };
+    }
+
+    const modelId = "gemini-2.5-flash"; // Fastest model, perfect for lists
 
     const response = await ai.models.generateContent({
       model: modelId,
       contents: prompt,
       config: {
-        systemInstruction: "Sen uzman bir film eleştirmenisin. Türkçe yanıt ver. Kullanıcı senden film önerileri veya belirli bir türde liste istediğinde, her zaman JSON formatında yanıt dön.",
+        systemInstruction: "Sen uzman bir film eleştirmenisin. Türkçe yanıt ver. Kullanıcı senden film önerileri veya belirli bir türde liste istediğinde, her zaman geçerli JSON formatında yanıt dön. JSON dışında hiçbir metin ekleme.",
         responseMimeType: "application/json",
         responseSchema: movieSchema,
         temperature: 0.7,
+        topP: 0.95,
+        topK: 40,
       },
     });
 
     const text = response.text;
-    if (!text) return { movies: [], summary: "Bir hata oluştu." };
+    if (!text) {
+      throw new Error("No response from API");
+    }
 
     const data = JSON.parse(text);
-    return data;
+    
+    // Validate response structure
+    if (!data.movies || !Array.isArray(data.movies)) {
+      throw new Error("Invalid response structure");
+    }
+
+    // Ensure all movies have required fields
+    const validMovies = data.movies.filter((movie: any) => 
+      movie.id && movie.title && movie.overview && movie.year && movie.rating && movie.genre && movie.director
+    );
+
+    return {
+      movies: validMovies.length > 0 ? validMovies : FALLBACK_MOVIES,
+      summary: data.summary || "Film listesi başarıyla yüklendi."
+    };
   } catch (error) {
     console.error("Gemini API Error:", error);
     return { 
-      movies: [], 
-      summary: "Üzgünüm, şu anda AI servisine ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin." 
+      movies: FALLBACK_MOVIES, 
+      summary: "Üzgünüm, şu anda AI servisine ulaşılamıyor. Lütfen API key'inizi kontrol edin veya daha sonra tekrar deneyin." 
     };
   }
 };
 
 export const getTrendingMovies = async (): Promise<{ movies: Movie[], summary: string }> => {
-  const result = await fetchMovies("Bana şu an popüler olan, farklı türlerden 8 adet yüksek puanlı film öner. Klasikler ve modern filmler karışık olsun.");
+  const result = await fetchMovies(
+    `Bana şu an popüler olan, farklı türlerden 8 adet yüksek puanlı film öner. 
+     Klasikler ve modern filmler karışık olsun. Her birinin özeti ilgi çekici ve kısa olmalı.
+     Oyuncu listesi ekle. JSON formatında cevap ver.`
+  );
   
   // Return fallback content if API fails for main page
   if (result.movies.length === 0) {
@@ -133,25 +170,39 @@ export const getTrendingMovies = async (): Promise<{ movies: Movie[], summary: s
 };
 
 export const searchMoviesAI = async (query: string): Promise<{ movies: Movie[], summary: string }> => {
-  return fetchMovies(`Kullanıcının isteğine göre film önerileri yap. İstek: "${query}". En az 5 film öner.`);
+  return fetchMovies(
+    `Kullanıcının isteğine göre film önerileri yap. İstek: "${query}"
+     En az 6 ila 10 film öner. Çeşitli türlerden seç.
+     Her film için oyuncu listesi ekle. JSON formatında cevap ver.`
+  );
 };
 
 export const fetchMoviesByGenre = async (genre: string): Promise<{ movies: Movie[], summary: string }> => {
-  return fetchMovies(`Bana en iyi, en popüler ve eleştirmenlerce beğenilen "${genre}" türündeki filmleri listele. En az 6 film olsun. Özetleri ilgi çekici yaz.`);
+  return fetchMovies(
+    `Bana en iyi, en popüler ve eleştirmenlerce beğenilen "${genre}" türündeki filmleri listele. 
+     En az 8 film olsun. Özütleri ilgi çekici yaz. Oyuncu listesi ekle.
+     JSON formatında cevap ver.`
+  );
 };
 
-export const getPersonalizedRecommendations = async (watchedMovies: string[], favoriteMovies: string[]): Promise<{ movies: Movie[], summary: string }> => {
-  const watchedStr = watchedMovies.length > 0 ? watchedMovies.join(", ") : "Belirtilmemiş";
-  const favStr = favoriteMovies.length > 0 ? favoriteMovies.join(", ") : "Belirtilmemiş";
+export const getPersonalizedRecommendations = async (
+  watchedMovies: string[], 
+  favoriteMovies: string[]
+): Promise<{ movies: Movie[], summary: string }> => {
+  const watchedStr = watchedMovies.slice(0, 5).join(", ") || "Belirtilmemiş";
+  const favStr = favoriteMovies.slice(0, 5).join(", ") || "Belirtilmemiş";
   
   const prompt = `
-    Kullanıcının film zevkine göre 8 adet kişiselleştirilmiş film önerisi yap.
+    Kullanıcının film zevkine göre 8-10 adet kişiselleştirilmiş film önerisi yap.
+    
     Kullanıcının İzlediği Filmler: ${watchedStr}
     Kullanıcının Favori Filmleri: ${favStr}
     
     Analiz et ve bu tarza uygun, henüz keşfetmemiş olabileceği yüksek kaliteli filmler öner. 
     Eğer liste çok kısaysa genel popüler kült ve kaliteli yapımlardan karma yap.
-    Özet kısmında neden bu filmleri seçtiğini "Senin için seçtik çünkü..." gibi samimi bir dille kısaca açıkla.
+    Her film için oyuncu listesi ekle.
+    Özet kısmında neden bu filmleri seçtiğini samimi bir dille açıkla.
+    JSON formatında cevap ver.
   `;
   
   const result = await fetchMovies(prompt);
@@ -169,10 +220,18 @@ export const getPersonalizedRecommendations = async (watchedMovies: string[], fa
 
 export const getDetailedMovieOverview = async (title: string): Promise<string | null> => {
   try {
+    if (!ai || !apiKey) return null;
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `"${title}" filmi için detaylı, sürükleyici ve atmosferi yansıtan bir özet yaz. Spoiler vermeden hikayenin derinliğini, temasını ve karakter motivasyonlarını anlat. Türkçe olsun. Sadece özeti döndür.`,
+      contents: `"${title}" filmi için detaylı, sürükleyici ve atmosferi yansıtan bir özet yaz. 
+                 Spoiler vermeden hikayenin derinliğini, temasını ve karakter motivasyonlarını anlat. 
+                 Türkçe olsun. En fazla 3-4 cümle. Sadece özeti döndür, başka metin ekleme.`,
+      config: {
+        temperature: 0.7,
+      }
     });
+
     return response.text || null;
   } catch (error) {
     console.error("Detailed Overview Error:", error);
@@ -182,12 +241,15 @@ export const getDetailedMovieOverview = async (title: string): Promise<string | 
 
 export const getActorDetails = async (actorName: string): Promise<{ bio: string, famousMovies: string[] } | null> => {
   try {
+    if (!ai || !apiKey) return null;
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `Information about actor "${actorName}"`,
+      contents: `${actorName} hakkında bilgi. Türkçe cevap ver. JSON formatında: bio (kısa biyografi) ve famousMovies (ünlü 3 filmi).`,
       config: {
         responseMimeType: "application/json",
         responseSchema: actorSchema,
+        temperature: 0.7,
       }
     });
     
