@@ -1,7 +1,6 @@
-/// <reference types="vite/client" />
 import { Movie, RecommendationResponse } from '../types';
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+const API_KEY = (import.meta as any).env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 // Fallback Movies Database - 10 FİLM
@@ -330,17 +329,22 @@ const MOVIES_BY_GENRE: Record<string, Movie[]> = {
 // API'ye istek gönder
 async function callGeminiAPI(prompt: string): Promise<{ movies: Movie[], summary: string }> {
   if (!API_KEY || API_KEY === 'PLACEHOLDER_API_KEY' || API_KEY === '') {
-    console.warn('Gemini API Key tanımlanmamış. Fallback veri kullanılacak.');
+    console.warn('⚠️ Gemini API Key tanımlanmamış!');
+    console.warn('Fallback veri kullanılıyor. Lütfen .env dosyasında VITE_GEMINI_API_KEY tanımla.');
     return {
       movies: FALLBACK_MOVIES,
-      summary: 'API servisi kullanılamıyor, populer filmler gösteriliyor.'
+      summary: '⚠️ API servisi kullanılamıyor. Populer filmler gösteriliyor.'
     };
   }
 
   try {
+    console.log('🔄 Gemini API çağrılıyor...');
+    
     const response = await fetch(`${GEMINI_API_URL}?key=${API_KEY}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         contents: [{
           parts: [{
@@ -357,36 +361,67 @@ async function callGeminiAPI(prompt: string): Promise<{ movies: Movie[], summary
     });
 
     if (!response.ok) {
-      console.error('API Error:', response.statusText);
-      return { movies: FALLBACK_MOVIES, summary: 'API hatası, fallback veri kullanılıyor.' };
+      const errorText = await response.text();
+      console.error('❌ API Status Error:', response.status, response.statusText);
+      console.error('API Yanıt:', errorText);
+      
+      // Hata koduna göre mesaj
+      if (response.status === 401 || response.status === 403) {
+        console.error('❌ API Key Hatası - Geçersiz veya süresi dolmuş!');
+      } else if (response.status === 400) {
+        console.error('❌ İstek Formatı Hatası');
+      }
+      
+      return { 
+        movies: FALLBACK_MOVIES, 
+        summary: `⚠️ API hatası (${response.status}). Fallback veri kullanılıyor.` 
+      };
     }
 
     const data = await response.json();
+    console.log('✅ API Yanıt Alındı');
+    
+    if (data.error) {
+      console.error('❌ API Hata Mesajı:', data.error);
+      return { 
+        movies: FALLBACK_MOVIES, 
+        summary: '⚠️ API hatası: ' + (data.error.message || 'Bilinmeyen hata') 
+      };
+    }
     
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       const text = data.candidates[0].content.parts[0].text;
+      console.log('✅ API Metni Alındı, JSON aranıyor...');
       
       try {
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
+          console.log('✅ JSON Parse Başarılı, filmler:', parsed.movies?.length);
           
           if (parsed.movies && Array.isArray(parsed.movies)) {
             return {
               movies: parsed.movies.slice(0, 10),
-              summary: parsed.summary || 'Yapay zeka tarafından seçilen filmler'
+              summary: parsed.summary || '✅ Yapay zeka tarafından seçilen filmler'
             };
           }
         }
       } catch (e) {
-        console.error('JSON parse error:', e);
+        console.error('❌ JSON Parse Error:', e);
       }
     }
 
-    return { movies: FALLBACK_MOVIES, summary: 'Veriler işlenirken sorun oluştu.' };
+    console.warn('⚠️ Beklenmedik API Yapısı');
+    return { 
+      movies: FALLBACK_MOVIES, 
+      summary: '⚠️ API veri yapısı beklenenden farklı. Fallback veri gösteriliyor.' 
+    };
   } catch (error) {
-    console.error('Gemini API Error:', error);
-    return { movies: FALLBACK_MOVIES, summary: 'Ağ hatası, fallback veri kullanılıyor.' };
+    console.error('❌ Gemini API Network Error:', error);
+    return { 
+      movies: FALLBACK_MOVIES, 
+      summary: '⚠️ Ağ hatası. Fallback veri kullanılıyor.' 
+    };
   }
 }
 
