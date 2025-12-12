@@ -1,6 +1,15 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Movie } from "../types";
 
+// Extend ImportMeta interface to include env property
+declare global {
+  interface ImportMeta {
+    env: {
+      VITE_GEMINI_API_KEY: string;
+    };
+  }
+}
+
 // Initialize Gemini AI with API key from environment
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
