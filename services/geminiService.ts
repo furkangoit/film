@@ -1,11 +1,12 @@
 /// <reference types="vite/client" />
 import { Movie, RecommendationResponse } from '../types';
+import { addPosterUrlToMovie } from './tmdbService';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
-// Fallback Movies Database - 10 FİLM
-const FALLBACK_MOVIES: Movie[] = [
+// Fallback Movies Database - Tüm kategori filmleri birleştirilmiş hali
+const FALLBACK_MOVIES_BASE: Movie[] = [
   {
     id: '1',
     title: 'Esaretin Bedeli',
@@ -17,7 +18,8 @@ const FALLBACK_MOVIES: Movie[] = [
     cast: ['Tim Robbins', 'Morgan Freeman', 'Bob Gunton'],
     duration: '142 min',
     userRating: 9.2,
-    reviewCount: 1250
+    reviewCount: 1250,
+    posterUrl: 'https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg'
   },
   {
     id: '2',
@@ -30,7 +32,8 @@ const FALLBACK_MOVIES: Movie[] = [
     cast: ['Leonardo DiCaprio', 'Joseph Gordon-Levitt', 'Elliot Page'],
     duration: '148 min',
     userRating: 8.7,
-    reviewCount: 980
+    reviewCount: 980,
+    posterUrl: 'https://image.tmdb.org/t/p/w500/8IB2e4r4oVhHnANbnm7O3Tj6tF8.jpg'
   },
   {
     id: '3',
@@ -43,7 +46,8 @@ const FALLBACK_MOVIES: Movie[] = [
     cast: ['Christian Bale', 'Heath Ledger', 'Aaron Eckhart'],
     duration: '152 min',
     userRating: 9.1,
-    reviewCount: 1500
+    reviewCount: 1500,
+    posterUrl: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg'
   },
   {
     id: '4',
@@ -56,7 +60,8 @@ const FALLBACK_MOVIES: Movie[] = [
     cast: ['Elijah Wood', 'Viggo Mortensen', 'Ian McKellen'],
     duration: '201 min',
     userRating: 9.0,
-    reviewCount: 1100
+    reviewCount: 1100,
+    posterUrl: 'https://image.tmdb.org/t/p/w500/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg'
   },
   {
     id: '5',
@@ -69,7 +74,8 @@ const FALLBACK_MOVIES: Movie[] = [
     cast: ['John Travolta', 'Uma Thurman', 'Samuel L. Jackson'],
     duration: '154 min',
     userRating: 8.8,
-    reviewCount: 890
+    reviewCount: 890,
+    posterUrl: 'https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg'
   },
   {
     id: '6',
@@ -82,7 +88,8 @@ const FALLBACK_MOVIES: Movie[] = [
     cast: ['Tom Hanks', 'Gary Sinise', 'Sally Field'],
     duration: '142 min',
     userRating: 8.6,
-    reviewCount: 760
+    reviewCount: 760,
+    posterUrl: 'https://image.tmdb.org/t/p/w500/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg'
   },
   {
     id: '7',
@@ -95,7 +102,8 @@ const FALLBACK_MOVIES: Movie[] = [
     cast: ['Jake Gyllenhaal', 'Christoph Waltz', 'Ryan Reynolds'],
     duration: '130 min',
     userRating: 8.3,
-    reviewCount: 640
+    reviewCount: 640,
+    posterUrl: 'https://image.tmdb.org/t/p/w500/mvEpoque3DitgeMdrXsATj7oWhJ.jpg'
   },
   {
     id: '8',
@@ -108,7 +116,8 @@ const FALLBACK_MOVIES: Movie[] = [
     cast: ['Matthew McConaughey', 'Anne Hathaway', 'Jessica Chastain'],
     duration: '169 min',
     userRating: 8.5,
-    reviewCount: 1050
+    reviewCount: 1050,
+    posterUrl: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg'
   },
   {
     id: '9',
@@ -121,7 +130,8 @@ const FALLBACK_MOVIES: Movie[] = [
     cast: ['Song Kang-ho', 'Lee Sun-kyun', 'Cho Yeo-jeong'],
     duration: '132 min',
     userRating: 8.7,
-    reviewCount: 920
+    reviewCount: 920,
+    posterUrl: 'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg'
   },
   {
     id: '10',
@@ -134,9 +144,13 @@ const FALLBACK_MOVIES: Movie[] = [
     cast: ['Russell Crowe', 'Joaquin Phoenix', 'Connie Nielsen'],
     duration: '155 min',
     userRating: 8.4,
-    reviewCount: 750
+    reviewCount: 750,
+    posterUrl: 'https://image.tmdb.org/t/p/w500/ty8TGRuvJLPUmAR1H1nRIsgwvim.jpg'
   }
 ];
+
+// Fallback movies will be initialized after MOVIES_BY_GENRE is defined
+let FALLBACK_MOVIES: Movie[] = [];
 
 // ============== TÜRKÇE FİLM KOLEKSİYONU ==============
 const TURKISH_MOVIES: Movie[] = [
@@ -404,6 +418,14 @@ const MOVIES_BY_GENRE: Record<string, Movie[]> = {
   ]
 };
 
+// Initialize FALLBACK_MOVIES with all available movies and add TMDB posters
+FALLBACK_MOVIES = [
+  ...FALLBACK_MOVIES_BASE,
+  ...Object.values(MOVIES_BY_GENRE).flat()
+].map(movie => addPosterUrlToMovie(movie));
+
+console.log(`✅ Fallback veri hazırlandı: ${FALLBACK_MOVIES.length} film yüklendi`);
+
 // API'ye istek gönder
 async function callGeminiAPI(prompt: string): Promise<{ movies: Movie[], summary: string }> {
   if (!API_KEY || API_KEY === 'PLACEHOLDER_API_KEY' || API_KEY === '') {
@@ -411,7 +433,7 @@ async function callGeminiAPI(prompt: string): Promise<{ movies: Movie[], summary
     console.warn('Fallback veri kullanılıyor. Lütfen .env dosyasında VITE_GEMINI_API_KEY tanımla.');
     return {
       movies: FALLBACK_MOVIES,
-      summary: '⚠️ API servisi kullanılamıyor. Populer filmler gösteriliyor.'
+      summary: `⚠️ API servisi kullanılamıyor. ${FALLBACK_MOVIES.length}+ popüler film gösteriliyor.`
     };
   }
 
@@ -528,7 +550,7 @@ export async function fetchMoviesByGenre(genre: string): Promise<{ movies: Movie
   // Türkçe film koleksiyonunu aç
   if (genre === 'Türkçe') {
     return {
-      movies: TURKISH_MOVIES,
+      movies: TURKISH_MOVIES.map(movie => addPosterUrlToMovie(movie)),
       summary: 'Türk sinemasının en iyileri'
     };
   }
@@ -536,15 +558,15 @@ export async function fetchMoviesByGenre(genre: string): Promise<{ movies: Movie
   // Genre kombinasyonlarını aç
   if (GENRE_COMBINATIONS[genre]) {
     return {
-      movies: GENRE_COMBINATIONS[genre],
+      movies: GENRE_COMBINATIONS[genre].map(movie => addPosterUrlToMovie(movie)),
       summary: `${genre} kategorisinde filmler`
     };
   }
 
-  // Standart kategorileri aç
+  // Standart kategorileri aç (zaten FALLBACK_MOVIES'de poster URL'leri var)
   if (MOVIES_BY_GENRE[genre]) {
     return {
-      movies: MOVIES_BY_GENRE[genre],
+      movies: MOVIES_BY_GENRE[genre].map(movie => addPosterUrlToMovie(movie)),
       summary: `${genre} kategorisinde en iyi filmler`
     };
   }
@@ -674,5 +696,5 @@ export function getGenreCombinations(): string[] {
 
 // Türkçe Film Koleksiyonu
 export function getTurkishMovies(): Movie[] {
-  return TURKISH_MOVIES;
+  return TURKISH_MOVIES.map(movie => addPosterUrlToMovie(movie));
 }

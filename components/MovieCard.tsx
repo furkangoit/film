@@ -25,13 +25,40 @@ const MovieCard: React.FC<MovieCardProps> = ({
   const [favAnimating, setFavAnimating] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Görsel URL'sini Unsplash'tan al - API key gerektirmiyor
-  const generateImageUrl = (title: string, year: number): string => {
-    const query = encodeURIComponent(title);
-    return `https://source.unsplash.com/600x900/?${query},cinema,film&sig=${year}`;
+  // Görsel URL'sini al - Önce posterUrl, sonra placeholder
+  const getImageUrl = (movie: Movie): string => {
+    // Eğer posterUrl varsa onu kullan
+    if (movie.posterUrl) {
+      return movie.posterUrl;
+    }
+
+    // Placeholder poster oluştur (film başlığı ile)
+    const titleEncoded = encodeURIComponent(movie.title.substring(0, 30));
+    const genreColor = getGenreColor(movie.genre);
+
+    return `https://placehold.co/600x900/${genreColor}/ffffff?text=${titleEncoded}`;
   };
 
-  const imageUrl = generateImageUrl(movie.title, movie.year);
+  // Türe göre renk seç
+  const getGenreColor = (genre: string): string => {
+    const colors: Record<string, string> = {
+      'Aksiyon': 'DC2626',
+      'Komedi': 'F59E0B',
+      'Dram': '6366F1',
+      'Bilim Kurgu': '8B5CF6',
+      'Korku': '7C2D12',
+      'Romantik': 'EC4899',
+      'Gerilim': '0F172A',
+      'Animasyon': '10B981',
+      'Belgesel': '64748B',
+      'Fantastik': '9333EA'
+    };
+
+    const mainGenre = genre.split(',')[0].trim();
+    return colors[mainGenre] || '1F2937';
+  };
+
+  const imageUrl = getImageUrl(movie);
 
   const handleCardClick = () => {
     if (isClicked) return;

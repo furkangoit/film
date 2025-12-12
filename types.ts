@@ -10,6 +10,7 @@ export interface Movie {
   cast?: string[];
   userRating?: number;        // ✨ Kullanıcı puanı
   reviewCount?: number;        // ✨ Kaç kişi puanladı
+  posterUrl?: string;          // ✨ Film posteri URL'si
 }
 
 export interface Review {
