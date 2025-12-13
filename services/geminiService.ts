@@ -3,6 +3,12 @@ import { Movie, RecommendationResponse } from '../types';
 const API_KEY = (import.meta as any).env.VITE_GEMINI_API_KEY || (process.env as any).GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
+// Rate limiting için global değişkenler
+let lastAPICallTime = 0;
+const MIN_API_CALL_INTERVAL = 2000; // 2 saniye minimum bekleme süresi
+let apiCallCount = 0;
+const MAX_CALLS_PER_MINUTE = 15; // Dakikada maksimum 15 istek
+
 // Fallback Movies Database - 10 FİLM
 const FALLBACK_MOVIES: Movie[] = [
   {
