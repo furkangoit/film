@@ -118,17 +118,17 @@ const MovieCard: React.FC<MovieCardProps> = ({
         </div>
 
         {/* Quick Action Buttons - Sağ Üst */}
-        <div className={`absolute top-2 right-2 z-20 flex flex-col gap-2 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 ${isClicked ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
+        <div className={`absolute top-2 right-2 z-30 flex flex-col gap-2 transition-all duration-300 ${isClicked ? 'opacity-0' : 'opacity-100'}`}>
           {/* Watched/Unwatched Button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               onToggleWatched(movie);
             }}
-            className={`p-2 rounded-full backdrop-blur-md shadow-lg transition-all border border-white/10 ${
+            className={`p-2.5 rounded-full backdrop-blur-md shadow-xl transition-all border-2 ${
               isWatched
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-black/60 text-white hover:bg-white hover:text-green-600'
+                ? 'bg-green-600 text-white hover:bg-green-700 border-green-400'
+                : 'bg-black/80 text-white hover:bg-white hover:text-green-600 border-white/20 hover:border-green-400'
             }`}
             title={isWatched ? "İzlenmedi olarak işaretle" : "İzlendi olarak işaretle"}
           >
@@ -138,10 +138,10 @@ const MovieCard: React.FC<MovieCardProps> = ({
           {/* Favorite Button */}
           <button
             onClick={handleToggleFav}
-            className={`p-2 rounded-full backdrop-blur-md shadow-lg transition-all border border-white/10 ${
+            className={`p-2.5 rounded-full backdrop-blur-md shadow-xl transition-all border-2 ${
               isFavorite
-                ? 'bg-red-600 text-white hover:bg-red-700'
-                : 'bg-black/60 text-white hover:bg-white hover:text-red-600'
+                ? 'bg-red-600 text-white hover:bg-red-700 border-red-400'
+                : 'bg-black/80 text-white hover:bg-white hover:text-red-600 border-white/20 hover:border-red-400'
             }`}
             title={isFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle"}
           >
