@@ -110,50 +110,52 @@ const MovieCard: React.FC<MovieCardProps> = ({
 
         {/* Gradient Overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90" />
-        
-        {/* Watched Badge */}
-        {isWatched && (
-          <div className={`absolute top-2 left-2 z-10 bg-green-600/90 text-white text-xs font-bold px-2 py-1 rounded shadow-lg backdrop-blur-md flex items-center gap-1 border border-green-500 transition-opacity duration-300 pointer-events-none ${isClicked ? 'opacity-0' : 'group-hover:opacity-0'}`}>
-            <Check className="w-3 h-3" />
-            <span className="hidden sm:inline">İzlendi</span>
-          </div>
-        )}
 
-        {/* Rating Badge */}
-        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded flex items-center gap-1 border border-white/10 group-hover:border-primary/50 transition-colors z-20">
+        {/* Rating Badge - Sol Üst */}
+        <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded flex items-center gap-1 border border-white/10 group-hover:border-primary/50 transition-colors z-10">
           <Star className="w-3 h-3 text-yellow-400 fill-current" />
           <span className="text-xs font-bold text-white">{movie.rating.toFixed(1)}</span>
         </div>
 
-        {/* Quick Action Buttons */}
-        <div className={`absolute top-2 left-2 z-20 flex flex-col gap-2 transition-all duration-300 transform -translate-x-4 group-hover:translate-x-0 ${isClicked ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
-          <button
-            onClick={handleToggleFav}
-            className={`p-2 rounded-full backdrop-blur-md shadow-lg transition-all border border-white/10 ${
-              isFavorite 
-                ? 'bg-red-600 text-white hover:bg-red-700' 
-                : 'bg-black/60 text-white hover:bg-white hover:text-red-600'
-            }`}
-            title={isFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle"}
-          >
-            <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''} ${favAnimating ? 'animate-heart-burst' : ''}`} />
-          </button>
-
+        {/* Quick Action Buttons - Sağ Üst */}
+        <div className={`absolute top-2 right-2 z-20 flex flex-col gap-2 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 ${isClicked ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
+          {/* Watched/Unwatched Button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               onToggleWatched(movie);
             }}
             className={`p-2 rounded-full backdrop-blur-md shadow-lg transition-all border border-white/10 ${
-              isWatched 
-                ? 'bg-green-600 text-white hover:bg-green-700' 
+              isWatched
+                ? 'bg-green-600 text-white hover:bg-green-700'
                 : 'bg-black/60 text-white hover:bg-white hover:text-green-600'
             }`}
             title={isWatched ? "İzlenmedi olarak işaretle" : "İzlendi olarak işaretle"}
           >
             {isWatched ? <Check className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
+
+          {/* Favorite Button */}
+          <button
+            onClick={handleToggleFav}
+            className={`p-2 rounded-full backdrop-blur-md shadow-lg transition-all border border-white/10 ${
+              isFavorite
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-black/60 text-white hover:bg-white hover:text-red-600'
+            }`}
+            title={isFavorite ? "Favorilerden Çıkar" : "Favorilere Ekle"}
+          >
+            <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''} ${favAnimating ? 'animate-heart-burst' : ''}`} />
+          </button>
         </div>
+
+        {/* Watched Badge - Hover olmadığında göster */}
+        {isWatched && (
+          <div className={`absolute top-14 right-2 z-10 bg-green-600/90 text-white text-xs font-bold px-2 py-1 rounded shadow-lg backdrop-blur-md flex items-center gap-1 border border-green-500 transition-all duration-300 ${isClicked ? 'opacity-0' : 'opacity-100 group-hover:opacity-0'}`}>
+            <Check className="w-3 h-3" />
+            <span className="hidden sm:inline">İzlendi</span>
+          </div>
+        )}
 
         {/* Play Button on Click */}
         <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 delay-100 pointer-events-none ${isClicked ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
