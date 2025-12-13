@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Star, Calendar, Play, Heart, Eye, Check } from 'lucide-react';
 import { Movie } from '../types';
+import { getTMDBPosterUrl } from '../services/tmdbService';
 
 interface MovieCardProps {
   movie: Movie;
@@ -12,9 +13,9 @@ interface MovieCardProps {
   onToggleWatched: (movie: Movie) => void;
 }
 
-const MovieCard: React.FC<MovieCardProps> = ({ 
-  movie, 
-  onClick, 
+const MovieCard: React.FC<MovieCardProps> = ({
+  movie,
+  onClick,
   index,
   isFavorite,
   isWatched,
@@ -25,16 +26,27 @@ const MovieCard: React.FC<MovieCardProps> = ({
   const [favAnimating, setFavAnimating] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Film poster'ı Pollinations AI ile oluştur - yüksek kaliteli
-  const generateImageUrl = (title: string, year: number): string => {
-    // Film adı ve yıl ile detaylı prompt oluştur
+  // Film posterini al - önce TMDB, yoksa Pollinations AI fallback
+  const getImageUrl = (): string => {
+    // Önce movie nesnesindeki posterUrl'i kontrol et
+    if (movie.posterUrl) {
+      return movie.posterUrl;
+    }
+
+    // TMDB'den poster al
+    const tmdbUrl = getTMDBPosterUrl(movie.title);
+    if (tmdbUrl) {
+      return tmdbUrl;
+    }
+
+    // Fallback: Pollinations AI ile poster oluştur
     const prompt = encodeURIComponent(
-      `${title} ${year} film poster minimal cinematic high quality professional movie cover art`
+      `${movie.title} ${movie.year} film poster minimal cinematic high quality professional movie cover art`
     );
     return `https://image.pollinations.ai/prompt/${prompt}?width=600&height=900&nologo=true`;
   };
 
-  const imageUrl = generateImageUrl(movie.title, movie.year);
+  const imageUrl = getImageUrl();
 
   const handleCardClick = () => {
     if (isClicked) return;
