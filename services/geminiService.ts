@@ -9,6 +9,10 @@ const MIN_API_CALL_INTERVAL = 2000; // 2 saniye minimum bekleme süresi
 let apiCallCount = 0;
 const MAX_CALLS_PER_MINUTE = 15; // Dakikada maksimum 15 istek
 
+// Retry mekanizması sabitleri
+const MAX_RETRIES = 2; // Maksimum 2 kez yeniden dene
+const RETRY_DELAY = 3000; // 3 saniye bekle
+
 // Fallback Movies Database - 10 FİLM
 const FALLBACK_MOVIES: Movie[] = [
   {
@@ -409,8 +413,30 @@ const MOVIES_BY_GENRE: Record<string, Movie[]> = {
   ]
 };
 
-// API'ye istek gönder
-async function callGeminiAPI(prompt: string): Promise<{ movies: Movie[], summary: string }> {
+// Rate limiting kontrolü ve bekleme
+async function waitForRateLimit(): Promise<void> {
+  const now = Date.now();
+  const timeSinceLastCall = now - lastAPICallTime;
+
+  // Minimum bekleme süresi kontrolü
+  if (timeSinceLastCall < MIN_API_CALL_INTERVAL) {
+    const waitTime = MIN_API_CALL_INTERVAL - timeSinceLastCall;
+    console.log(`⏳ Rate limit: ${waitTime}ms bekleniyor...`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+
+  // API call sayacını güncelle
+  apiCallCount++;
+  lastAPICallTime = Date.now();
+
+  // 1 dakika sonra sayacı sıfırla
+  setTimeout(() => {
+    apiCallCount = Math.max(0, apiCallCount - 1);
+  }, 60000);
+}
+
+// API'ye istek gönder (retry mekanizması ile)
+async function callGeminiAPI(prompt: string, retryCount: number = 0): Promise<{ movies: Movie[], summary: string }> {
   if (!API_KEY || API_KEY === 'PLACEHOLDER_API_KEY' || API_KEY === '') {
     console.warn('⚠️ Gemini API Key tanımlanmamış!');
     console.warn('Fallback veri kullanılıyor. Lütfen .env dosyasında VITE_GEMINI_API_KEY tanımla.');
@@ -420,9 +446,21 @@ async function callGeminiAPI(prompt: string): Promise<{ movies: Movie[], summary
     };
   }
 
+  // Rate limit kontrolü
+  if (apiCallCount >= MAX_CALLS_PER_MINUTE) {
+    console.warn('⚠️ Rate limit aşıldı! Fallback veri kullanılıyor.');
+    return {
+      movies: FALLBACK_MOVIES,
+      summary: '⚠️ Çok fazla istek. Lütfen biraz bekleyin ve tekrar deneyin.'
+    };
+  }
+
+  // Rate limiting beklemesi
+  await waitForRateLimit();
+
   try {
-    console.log('🔄 Gemini API çağrılıyor...');
-    
+    console.log(`🔄 Gemini API çağrılıyor... (${apiCallCount}/${MAX_CALLS_PER_MINUTE})${retryCount > 0 ? ` [Deneme ${retryCount + 1}/${MAX_RETRIES + 1}]` : ''}`);
+
     const response = await fetch(`${GEMINI_API_URL}?key=${API_KEY}`, {
       method: 'POST',
       headers: { 
@@ -447,17 +485,40 @@ async function callGeminiAPI(prompt: string): Promise<{ movies: Movie[], summary
       const errorText = await response.text();
       console.error('❌ API Status Error:', response.status, response.statusText);
       console.error('API Yanıt:', errorText);
-      
-      // Hata koduna göre mesaj
-      if (response.status === 401 || response.status === 403) {
+
+      // Hata koduna göre mesaj ve retry
+      if (response.status === 429) {
+        console.error('❌ Rate Limit Aşıldı! Gemini API günlük/dakikalık istek limitine ulaşıldı.');
+
+        // Retry mekanizması - 429 için yeniden dene
+        if (retryCount < MAX_RETRIES) {
+          console.warn(`🔄 ${RETRY_DELAY / 1000} saniye sonra yeniden denenecek...`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          return callGeminiAPI(prompt, retryCount + 1);
+        }
+
+        console.warn('💡 Çözüm: Birkaç dakika bekleyin veya API key\'inizi yükseltin.');
+        return {
+          movies: FALLBACK_MOVIES,
+          summary: '⚠️ Çok fazla istek gönderildi. Lütfen birkaç dakika bekleyin ve tekrar deneyin.'
+        };
+      } else if (response.status === 401 || response.status === 403) {
         console.error('❌ API Key Hatası - Geçersiz veya süresi dolmuş!');
+        return {
+          movies: FALLBACK_MOVIES,
+          summary: '⚠️ API key hatası. Lütfen geçerli bir API key kullanın.'
+        };
       } else if (response.status === 400) {
         console.error('❌ İstek Formatı Hatası');
+        return {
+          movies: FALLBACK_MOVIES,
+          summary: '⚠️ İstek formatı hatalı. Fallback veri kullanılıyor.'
+        };
       }
-      
-      return { 
-        movies: FALLBACK_MOVIES, 
-        summary: `⚠️ API hatası (${response.status}). Fallback veri kullanılıyor.` 
+
+      return {
+        movies: FALLBACK_MOVIES,
+        summary: `⚠️ API hatası (${response.status}). Fallback veri kullanılıyor.`
       };
     }
 
